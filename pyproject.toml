@@ -1,0 +1,17 @@
+[project]
+name = "courtbee-synth"
+version = "0.1.0"
+description = "Synthetic player and play-invite data for Courtbee"
+requires-python = ">=3.12"
+dependencies = [
+    "faker>=40.39.0",
+    "gradio>=5.47,<6",
+    "openai>=1.109",
+    "pydantic>=2",
+    "python-dotenv>=1.2.3",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.3.0",
+]
