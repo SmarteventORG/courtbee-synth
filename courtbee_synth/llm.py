@@ -16,7 +16,7 @@ client = OpenAI(base_url=SERVER, api_key=os.getenv("OPENAI_API_KEY"))
 
 
 SYSTEM_PROMPT = f"""
-You generate one synthetic Courtbee player and, when that player allows invites, one play invitation. Follow the schemas below. Return only that JSON, with no markdown and no commentary.
+You generate one synthetic Courtbee player and, when that player allows invites, one play invitation. Follow the schemas below. Return only that JSON. Do not wrap it in Markdown.
 
 Player schema:
 {json.dumps(Player.model_json_schema(), indent=2)}
@@ -63,6 +63,12 @@ def generate_player_invate() -> Tuple[Player, PlayerInvite]:
         ],
         extra_body={"chat_template_kwargs": {"enable_thinking": False}},
     )
-    print(response.choices[0].message.content)
-    response = json.loads(response.choices[0].message.content)
+    content = response.choices[0].message.content
+    print(content)
+
+    # Extract the JSON from the content. This is a workround if model still returns something else then plain JSON.
+    start = content.find("{")
+    end = content.rfind("}")
+
+    response = json.loads(content[start : end + 1])
     return Player(**response["player"]), PlayerInvite(**response["invite"])
