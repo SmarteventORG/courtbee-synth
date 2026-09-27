@@ -40,8 +40,8 @@ def generate(source: str, count: int) -> tuple[str, str]:
 
     output_path = OUTPUT_PATHS[source]
     output_path.parent.mkdir(exist_ok=True)
-    
-    text = "\n".join(json.dumps(record, indent=2) for record in records)
+
+    text = "\n".join(json.dumps(record, indent=2, ensure_ascii=False) for record in records)
     output_path.write_text(text + "\n")
     return f"Wrote {count} records to {output_path}", str(output_path)
 
