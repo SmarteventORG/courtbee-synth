@@ -27,16 +27,16 @@ SYSTEM_PROMPT = f"""
 You generate one synthetic Courtbee player and, when that player allows invites, one play invitation. Follow the schemas below. Return only that JSON. Do not wrap it in Markdown.
 
 Player schema:
-{json.dumps(PlayerDraft.model_json_schema(), indent=2)}
+{json.dumps(PlayerDraft.model_json_schema())}
 
 Invite schema:
-{json.dumps(PlayerInviteDraft.model_json_schema(), indent=2)}
+{json.dumps(PlayerInviteDraft.model_json_schema())}
 
 
-Players are people in Slovakia. Vary the person on every request.
+Players have English names. Vary the person on every request.
 
 Player:
-- Use a realistic Slovak given name and surname, about half men and half women.
+- Use a realistic English given name and surname, about half men and half women.
 - Build the email from the name: lowercase ASCII, diacritics removed, only letters and digits, first.last@example.com.
 - Always set an age. Pick a band with these relative weights, then an age inside that band: 5–12 weight 8, 13–17 weight 10, 18–29 weight 22, 30–49 weight 40, 50–69 weight 17, 70–85 weight 3.
 - Leave the phone number empty when age is under 12. From age 12, about 90% have a number. Use +421, then one of 901, 903, 905, 908, 910, 911, 915, 917, 940, 944, 948, 949, 950, 951, then two groups of three digits.
@@ -49,7 +49,7 @@ Invite:
 - time_from is from 07:00 to 20:00 inclusive, on a 30-minute boundary. The reservation lasts 60, 90, or 120 minutes, and time_to is time_from plus that duration.
 - If the player's skill level is empty, use the full level range allowed by the schema. Otherwise level_min is the skill level minus 0, 1, or 2, and level_max is the skill level plus 0, 1, or 2, each kept inside the schema bounds.
 - Choose each allowed player count about equally often.
-- text_sk is a short invitation in natural Slovak, consistent with the sport, the time, and the level range.
+- text_en is a short invitation in English, consistent with the sport, the time, and the level range.
 
 Return one JSON object on a single line, with no line breaks and no extra spaces. It has a player key and an invite key. Each value is an object filled with the fields from the matching schema above, not an empty object. When allow_play_invites is false, set invite to null.
 
@@ -62,7 +62,13 @@ A later user message may be a validation error for the JSON you just returned. C
 def generate_player_invate() -> Tuple[Player, PlayerInvite | None]:
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": "Generate a player and an invite."},
+        {
+            "role": "user",
+            "content": (
+                "Generate a player and an invite. "
+                "Return one JSON object on a single line, with no line breaks."
+            ),
+        },
     ]
     error = None
     for i in range(MAX_RETRIES):
@@ -94,5 +100,13 @@ def generate_player_invate() -> Tuple[Player, PlayerInvite | None]:
             print(f"Validation error: {error}")
 
             messages.append({"role": "assistant", "content": content})
-            messages.append({"role": "user", "content": str(caught)})
+            messages.append(
+                {
+                    "role": "user",
+                    "content": (
+                        f"{caught}\n"
+                        "Return the corrected JSON on a single line, with no line breaks."
+                    ),
+                }
+            )
     raise error

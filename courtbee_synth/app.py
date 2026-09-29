@@ -26,7 +26,7 @@ TODAY = date(2026, 10, 1)
 
 def generate(source: str, count: int) -> tuple[str, list[str]]:
     count = int(count)
-    fake = Faker("sk_SK")
+    fake = Faker("en_US")
     players = []
     invites = []
     for _ in range(count):

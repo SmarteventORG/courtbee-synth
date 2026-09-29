@@ -49,7 +49,7 @@ class PlayerInviteDraft(BaseModel):
     level_min: int = Field(ge=1, le=10)
     level_max: int = Field(ge=1, le=10)
     num_players: Literal[2, 4] = Field(default=2)
-    text_sk: str | None = Field(default=None, max_length=255)
+    text_en: str | None = Field(default=None, max_length=255)
 
 
 class PlayerInvite(PlayerInviteDraft):

@@ -90,5 +90,5 @@ def make_invite(fake: Faker, player: Player, today: date) -> PlayerInvite:
         level_min=level_min,
         level_max=level_max,
         num_players=fake.random_element(elements=(2, 4)),
-        text_sk=fake.sentence(nb_words=4),
+        text_en=fake.sentence(nb_words=4),
     )
