@@ -12,16 +12,23 @@ from courtbee_synth.llm import generate_player_invate
 load_dotenv()
 
 OUTPUT_PATHS = {
-    "Faker": Path("data") / "synthetic_faker.jsonl",
-    "Local model": Path("data") / "synthetic_llm.jsonl",
+    "Faker": (
+        Path("data") / "synthetic_faker_player.json",
+        Path("data") / "synthetic_faker_invite.json",
+    ),
+    "Local model": (
+        Path("data") / "synthetic_llm_player.json",
+        Path("data") / "synthetic_llm_invite.json",
+    ),
 }
 TODAY = date(2026, 10, 1)
 
 
-def generate(source: str, count: int) -> tuple[str, str]:
+def generate(source: str, count: int) -> tuple[str, list[str]]:
     count = int(count)
     fake = Faker("sk_SK")
-    records = []
+    players = []
+    invites = []
     for _ in range(count):
         if source == "Faker":
             player = make_player(fake)
@@ -31,19 +38,19 @@ def generate(source: str, count: int) -> tuple[str, str]:
         else:
             player, invite = generate_player_invate()
 
-        records.append(
-            {
-                "player": player.model_dump(mode="json"),
-                "invite": None if invite is None else invite.model_dump(mode="json"),
-            }
-        )
+        players.append(player.model_dump(mode="json"))
+        if invite is not None:
+            invites.append(invite.model_dump(mode="json"))
 
-    output_path = OUTPUT_PATHS[source]
-    output_path.parent.mkdir(exist_ok=True)
-
-    text = "\n".join(json.dumps(record, indent=2, ensure_ascii=False) for record in records)
-    output_path.write_text(text + "\n")
-    return f"Wrote {count} records to {output_path}", str(output_path)
+    player_path, invite_path = OUTPUT_PATHS[source]
+    player_path.parent.mkdir(exist_ok=True)
+    player_path.write_text(json.dumps(players, indent=2, ensure_ascii=False) + "\n")
+    invite_path.write_text(json.dumps(invites, indent=2, ensure_ascii=False) + "\n")
+    status = (
+        f"Wrote {len(players)} players to {player_path} "
+        f"and {len(invites)} invites to {invite_path}"
+    )
+    return status, [str(player_path), str(invite_path)]
 
 
 def main() -> None:
@@ -52,7 +59,7 @@ def main() -> None:
         count = gr.Number(value=5, precision=0, minimum=1, label="Players")
         button = gr.Button("Generate")
         status = gr.Textbox(label="Status")
-        output_file = gr.File(label="JSONL file")
+        output_file = gr.File(label="JSON files", file_count="multiple")
         button.click(generate, [source, count], [status, output_file])
     demo.launch()
 
