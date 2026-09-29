@@ -1,3 +1,4 @@
+import asyncio
 import json
 from datetime import date
 from pathlib import Path
@@ -24,20 +25,23 @@ OUTPUT_PATHS = {
 TODAY = date(2026, 10, 1)
 
 
-def generate(source: str, count: int) -> tuple[str, list[str]]:
+async def generate(source: str, count: int) -> tuple[str, list[str]]:
     count = int(count)
-    fake = Faker("en_US")
     players = []
     invites = []
-    for _ in range(count):
-        if source == "Faker":
+    if source == "Faker":
+        fake = Faker("en_US")
+        pairs = []
+        for _ in range(count):
             player = make_player(fake)
             invite = (
                 make_invite(fake, player, TODAY) if player.allow_play_invites else None
             )
-        else:
-            player, invite = generate_player_invate()
+            pairs.append((player, invite))
+    else:
+        pairs = await asyncio.gather(*(generate_player_invate() for _ in range(count)))
 
+    for player, invite in pairs:
         players.append(player.model_dump(mode="json"))
         if invite is not None:
             invites.append(invite.model_dump(mode="json"))

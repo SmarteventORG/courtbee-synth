@@ -1,10 +1,11 @@
+import asyncio
 import json
 import os
 from typing import Tuple
 from uuid import uuid4
 
 from dotenv import load_dotenv
-from openai import OpenAI
+from openai import AsyncOpenAI
 from pydantic import ValidationError
 
 from courtbee_synth.models import (
@@ -20,7 +21,12 @@ MODEL = os.getenv("LLM_MODEL", "mlx-community/Qwen3.8-27B-8bit")
 SERVER = os.getenv("LLM_SERVER", "http://localhost:8080/v1")
 MAX_RETRIES = int(os.getenv("LLM_MAX_RETRIES", "5"))
 
-client = OpenAI(base_url=SERVER, api_key=os.getenv("OPENAI_API_KEY"))
+client = AsyncOpenAI(
+    base_url=SERVER,
+    api_key=os.getenv("OPENAI_API_KEY"),
+    timeout=300,
+)
+semaphore = asyncio.Semaphore(16)
 
 
 SYSTEM_PROMPT = f"""
@@ -59,7 +65,17 @@ A later user message may be a validation error for the JSON you just returned. C
 """
 
 
-def generate_player_invate() -> Tuple[Player, PlayerInvite | None]:
+async def _complete(messages: list[dict]) -> str:
+    async with semaphore:
+        response = await client.chat.completions.create(
+            model=MODEL,
+            messages=messages,
+            extra_body={"chat_template_kwargs": {"enable_thinking": False}},
+        )
+    return response.choices[0].message.content
+
+
+async def generate_player_invate() -> Tuple[Player, PlayerInvite | None]:
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {
@@ -72,12 +88,7 @@ def generate_player_invate() -> Tuple[Player, PlayerInvite | None]:
     ]
     error = None
     for i in range(MAX_RETRIES):
-        response = client.chat.completions.create(
-            model=MODEL,
-            messages=messages,
-            extra_body={"chat_template_kwargs": {"enable_thinking": False}},
-        )
-        content = response.choices[0].message.content
+        content = await _complete(messages)
         print(content)
 
         # Extract the JSON from the content. This is a workround if model still returns something else then plain JSON.
@@ -88,7 +99,7 @@ def generate_player_invate() -> Tuple[Player, PlayerInvite | None]:
             player = Player(id=uuid4(), **PlayerDraft(**data["player"]).model_dump())
             if data["invite"] is None:
                 return player, None
-                
+
             invite = PlayerInvite(
                 id=uuid4(),
                 author_id=player.id,

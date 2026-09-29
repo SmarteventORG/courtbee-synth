@@ -1,3 +1,4 @@
+import asyncio
 import json
 
 from courtbee_synth.llm import client, generate_player_invate
@@ -16,9 +17,9 @@ def test_model_corrects_age_after_validation_error(monkeypatch, capsys):
     original = client.chat.completions.create
     calls = []
 
-    def create(**kwargs):
+    async def create(**kwargs):
         calls.append(kwargs["messages"])
-        response = original(**kwargs)
+        response = await original(**kwargs)
         if len(calls) == 1:
             response.choices[0].message.content = _with_age(
                 response.choices[0].message.content, 2
@@ -27,7 +28,7 @@ def test_model_corrects_age_after_validation_error(monkeypatch, capsys):
 
     monkeypatch.setattr(client.chat.completions, "create", create)
 
-    player, invite = generate_player_invate()
+    player, invite = asyncio.run(generate_player_invate())
 
     assert len(calls) == 2
     assert calls[1][-2]["role"] == "assistant"
