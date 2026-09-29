@@ -12,10 +12,9 @@ class Sport(StrEnum):
     TENIS = "tenis"
 
 
-class Player(BaseModel):
+class PlayerDraft(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    id: UUID
     name: str = Field(min_length=1, max_length=100)
     email: str = Field(max_length=255, pattern=r"^[^@\s]+@example\.com$")
     tel_number: str | None = Field(default=None, max_length=20)
@@ -24,7 +23,11 @@ class Player(BaseModel):
     allow_play_invites: bool = True
 
 
-class PlayerInvite(BaseModel):
+class Player(PlayerDraft):
+    id: UUID
+
+
+class PlayerInviteDraft(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     @model_validator(mode="after")
@@ -39,8 +42,6 @@ class PlayerInvite(BaseModel):
             raise ValueError("level_min must not be greater than level_max")
         return self
 
-    id: UUID
-    author_id: UUID
     sport: Sport
     date: date
     time_from: time
@@ -49,3 +50,8 @@ class PlayerInvite(BaseModel):
     level_max: int = Field(ge=1, le=10)
     num_players: Literal[2, 4] = Field(default=2)
     text_sk: str | None = Field(default=None, max_length=255)
+
+
+class PlayerInvite(PlayerInviteDraft):
+    id: UUID
+    author_id: UUID
