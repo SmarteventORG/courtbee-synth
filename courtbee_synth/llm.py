@@ -4,6 +4,7 @@ from typing import Tuple
 
 from dotenv import load_dotenv
 from openai import OpenAI
+from pydantic import ValidationError
 
 from courtbee_synth.models import Player, PlayerInvite
 
@@ -46,6 +47,8 @@ Invite:
 
 Return one JSON object with a player key and an invite key. Each value is an object filled with the fields from the matching schema above, not an empty object. When allow_play_invites is false, set invite to null.
 
+A later user message may be a validation error for the JSON you just returned. Correct that output and return the full JSON object again. Do not explain the error.
+
 {{
   "player": {{ <fields from the Player schema> }},
   "invite": {{ <fields from the Invite schema> }}
@@ -54,21 +57,28 @@ Return one JSON object with a player key and an invite key. Each value is an obj
 
 
 def generate_player_invate() -> Tuple[Player, PlayerInvite]:
-    user_prompt = "Generate a player and an invite."
-    response = client.chat.completions.create(
-        model=MODEL,
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": user_prompt},
-        ],
-        extra_body={"chat_template_kwargs": {"enable_thinking": False}},
-    )
-    content = response.choices[0].message.content
-    print(content)
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": "Generate a player and an invite."},
+    ]
+    error = None
+    for i in range(5):
+        response = client.chat.completions.create(
+            model=MODEL,
+            messages=messages,
+            extra_body={"chat_template_kwargs": {"enable_thinking": False}},
+        )
+        content = response.choices[0].message.content
+        print(content)
 
-    # Extract the JSON from the content. This is a workround if model still returns something else then plain JSON.
-    start = content.find("{")
-    end = content.rfind("}")
-
-    response = json.loads(content[start : end + 1])
-    return Player(**response["player"]), PlayerInvite(**response["invite"])
+        # Extract the JSON from the content. This is a workround if model still returns something else then plain JSON.
+        start = content.find("{")
+        end = content.rfind("}")
+        data = json.loads(content[start : end + 1])
+        try:
+            return Player(**data["player"]), PlayerInvite(**data["invite"])
+        except ValidationError as caught:
+            error = caught
+            messages.append({"role": "assistant", "content": content})
+            messages.append({"role": "user", "content": str(caught)})
+    raise error
