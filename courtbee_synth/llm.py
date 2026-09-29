@@ -80,6 +80,8 @@ def generate_player_invate() -> Tuple[Player, PlayerInvite]:
             return Player(**data["player"]), PlayerInvite(**data["invite"])
         except ValidationError as caught:
             error = caught
+            print(f"Validation error: {error}")
+            
             messages.append({"role": "assistant", "content": content})
             messages.append({"role": "user", "content": str(caught)})
     raise error
