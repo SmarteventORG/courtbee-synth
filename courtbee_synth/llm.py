@@ -51,14 +51,11 @@ Invite:
 - Choose each allowed player count about equally often.
 - text_sk is a short invitation in natural Slovak, consistent with the sport, the time, and the level range.
 
-Return one JSON object with a player key and an invite key. Each value is an object filled with the fields from the matching schema above, not an empty object. When allow_play_invites is false, set invite to null.
+Return one JSON object on a single line, with no line breaks and no extra spaces. It has a player key and an invite key. Each value is an object filled with the fields from the matching schema above, not an empty object. When allow_play_invites is false, set invite to null.
 
-A later user message may be a validation error for the JSON you just returned. Correct that output and return the full JSON object again. Do not explain the error.
+A later user message may be a validation error for the JSON you just returned. Correct that output and return the full JSON object again, still on one line. Do not explain the error.
 
-{{
-  "player": {{ <fields from the Player schema> }},
-  "invite": {{ <fields from the Invite schema> }}
-}}
+{{"player": {{ <fields from the Player schema> }}, "invite": {{ <fields from the Invite schema> }}}}
 """
 
 
