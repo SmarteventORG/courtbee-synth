@@ -20,6 +20,7 @@ load_dotenv()
 MODEL = os.getenv("LLM_MODEL", "mlx-community/Qwen3.8-27B-8bit")
 SERVER = os.getenv("LLM_SERVER", "http://localhost:8080/v1")
 MAX_RETRIES = int(os.getenv("LLM_MAX_RETRIES", "5"))
+MAX_CONCURRENCY = int(os.getenv("LLM_MAX_CONCURRENCY", "16"))
 
 client = AsyncOpenAI(
     base_url=SERVER,
