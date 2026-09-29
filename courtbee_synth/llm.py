@@ -12,6 +12,7 @@ load_dotenv()
 
 MODEL = os.getenv("LLM_MODEL", "mlx-community/Qwen3.8-27B-8bit")
 SERVER = os.getenv("LLM_SERVER", "http://localhost:8080/v1")
+MAX_RETRIES = int(os.getenv("LLM_MAX_RETRIES", "5"))
 
 client = OpenAI(base_url=SERVER, api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -62,7 +63,7 @@ def generate_player_invate() -> Tuple[Player, PlayerInvite]:
         {"role": "user", "content": "Generate a player and an invite."},
     ]
     error = None
-    for i in range(5):
+    for i in range(MAX_RETRIES):
         response = client.chat.completions.create(
             model=MODEL,
             messages=messages,
