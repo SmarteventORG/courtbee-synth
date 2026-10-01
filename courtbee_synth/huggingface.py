@@ -17,3 +17,23 @@ def embed_text_en(text_en: str) -> list[float]:
     return [
         sum(token[index] for token in token_vectors) / count for index in range(width)
     ]
+
+
+def _cosine(left: list[float], right: list[float]) -> float:
+    dot = sum(a * b for a, b in zip(left, right))
+    left_norm = sum(a * a for a in left) ** 0.5
+    right_norm = sum(b * b for b in right) ** 0.5
+    return dot / (left_norm * right_norm)
+
+
+def average_similarity(texts: list[str]) -> float | None:
+    vectors = [embed_text_en(text) for text in texts if text]
+    if len(vectors) < 2:
+        return None
+    total = 0.0
+    pairs = 0
+    for i, left in enumerate(vectors):
+        for right in vectors[i + 1 :]:
+            total += _cosine(left, right)
+            pairs += 1
+    return total / pairs
