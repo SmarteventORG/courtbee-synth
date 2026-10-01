@@ -9,6 +9,8 @@ from faker import Faker
 
 from courtbee_synth.faker import make_invite, make_player
 from courtbee_synth.llm import generate_player_invate
+from huggingface_hub import login
+import os
 
 load_dotenv()
 
@@ -69,4 +71,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    hf_token = os.getenv("HF_TOKEN")
+    login(hf_token)
+    
     main()
