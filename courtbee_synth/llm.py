@@ -27,7 +27,7 @@ client = AsyncOpenAI(
     api_key=os.getenv("OPENAI_API_KEY"),
     timeout=300,
 )
-semaphore = asyncio.Semaphore(16)
+semaphore = asyncio.Semaphore(MAX_CONCURRENCY)
 
 
 SYSTEM_PROMPT = f"""
