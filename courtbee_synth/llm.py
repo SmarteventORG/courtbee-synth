@@ -18,7 +18,7 @@ from courtbee_synth.models import (
 load_dotenv()
 
 MODEL = os.getenv("LLM_MODEL", "mlx-community/Qwen3.8-27B-8bit")
-SERVER = os.getenv("LLM_SERVER", "http://localhost:8080/v1")
+SERVER = os.getenv("LLM_SERVER", "http://127.0.0.1:8080/v1")
 MAX_RETRIES = int(os.getenv("LLM_MAX_RETRIES", "5"))
 MAX_CONCURRENCY = int(os.getenv("LLM_MAX_CONCURRENCY", "16"))
 
