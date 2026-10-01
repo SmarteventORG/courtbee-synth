@@ -81,6 +81,7 @@ def main() -> None:
 
 if __name__ == "__main__":
     hf_token = os.getenv("HF_TOKEN")
-    login(hf_token)
+    if hf_token:
+        login(hf_token)
 
     main()
