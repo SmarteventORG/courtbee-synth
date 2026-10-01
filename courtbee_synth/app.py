@@ -71,7 +71,7 @@ def main() -> None:
         button = gr.Button("Generate")
         status = gr.Textbox(label="Status")
         diversity = gr.Number(
-            label="Rozmanitosť (priemerná podobnosť, nižšia = rozmanitejšie)",
+            label="Diversity (average similarity, lower = more varied)",
             precision=3,
         )
         output_file = gr.File(label="JSON files", file_count="multiple")
