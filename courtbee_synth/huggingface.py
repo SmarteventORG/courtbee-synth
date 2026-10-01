@@ -1,13 +1,15 @@
+import os
 from functools import cache
 
 from transformers import pipeline
 
-MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+DEFAULT_EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 
 
 @cache
 def _embedder():
-    return pipeline("feature-extraction", model=MODEL)
+    model = os.getenv("EMBEDDING_MODEL", DEFAULT_EMBEDDING_MODEL)
+    return pipeline("feature-extraction", model=model)
 
 
 def embed_text_en(text_en: str) -> list[float]:
